@@ -1,24 +1,24 @@
 package com.example.fleetmanagement.model;
 
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import lombok.Data;
 
-@Data
 @Entity
-@Table(name = "vehicles")
-public class Vehicle {
+@Table(name = "routes")
+public class Route {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String licensePlate;
-    private Double capacity;
-    private String maintenanceStatus;
+    private String routeName;
+    private Double totalDistance;
 
-    @OneToOne(mappedBy = "vehicle")
-    private Driver driver;
+    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL)
+    private List<DeliveryTask> tasks;
 }

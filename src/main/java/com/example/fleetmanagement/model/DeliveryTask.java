@@ -5,23 +5,19 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-// import lombok.Data;
-import lombok.Data;
 
-@Data
 @Entity
-@Table(name = "drivers")
-public class Driver {
+@Table(name = "delivery_tasks")
+public class DeliveryTask {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    private String licenseNumber;
-    private Integer shiftHours;
+    private String destinationAddress;
+    private String status; // e.g., "UNASSIGNED"
 
-    @OneToOne
-    @JoinColumn(name = "vehicle_id")
-    private Vehicle vehicle;
+    @ManyToOne
+    @JoinColumn(name = "route_id")
+    private Route route;
 }
