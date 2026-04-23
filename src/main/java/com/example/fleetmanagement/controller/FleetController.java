@@ -30,6 +30,11 @@ public class FleetController {
         return ResponseEntity.ok(vehicleRepo.save(vehicle));
     }
 
+    @PostMapping("/drivers")
+    public ResponseEntity<Driver> createDriver(@RequestBody Driver driver) {
+        return ResponseEntity.ok(driverRepo.save(driver));
+    }
+
     // Assign a driver to a vehicle
     @PutMapping("/drivers/{driverId}/assign/{vehicleId}")
     public ResponseEntity<Driver> assignDriver(@PathVariable Long driverId, @PathVariable Long vehicleId) {
