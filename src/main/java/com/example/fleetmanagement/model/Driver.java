@@ -8,6 +8,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "drivers")
 @Getter
@@ -51,6 +53,7 @@ public class Driver {
     @Builder.Default
     private Integer shiftHours = 8;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "driver", fetch = FetchType.LAZY)
     private List<DeliveryTask> deliveryTasks;
 
@@ -61,6 +64,10 @@ public class Driver {
     void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+
+        if (this.status == null) {
+        this.status = DriverStatus.AVAILABLE;
+    }
     }
 
     @PreUpdate

@@ -8,6 +8,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "vehicles")
 @Getter
@@ -59,9 +61,11 @@ public class Vehicle {
     @JoinColumn(name = "current_driver_id")
     private Driver currentDriver;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "vehicle", fetch = FetchType.LAZY)
     private List<DeliveryTask> deliveryTasks;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "vehicle", fetch = FetchType.LAZY)
     private List<Route> routes;
 
@@ -70,8 +74,16 @@ public class Vehicle {
 
     @PrePersist
     void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+
+        if (this.maintenanceStatus == null) {
+            this.maintenanceStatus = MaintenanceStatus.OPERATIONAL;
+        }
+
+        if (this.status == null) {
+            this.status = VehicleStatus.AVAILABLE;
+        }
     }
 
     @PreUpdate
