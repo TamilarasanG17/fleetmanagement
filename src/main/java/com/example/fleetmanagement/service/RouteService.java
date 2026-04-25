@@ -1,32 +1,39 @@
 package com.example.fleetmanagement.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import com.example.fleetmanagement.model.DeliveryTask;
+import com.example.fleetmanagement.model.*;
 import com.example.fleetmanagement.repositry.RouteRepository;
-import com.example.fleetmanagement.repositry.TaskRepository;
 
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class RouteService {
 
-    private final TaskRepository taskRepo;
     private final RouteRepository routeRepo;
     private final RouteOptimizationService optimizer;
 
     public List<Integer> optimizeRoute(Long routeId) {
 
-        List<DeliveryTask> tasks = taskRepo.findByRouteId(routeId);
+        // Fetch route
+        Route route = routeRepo.findById(routeId)
+                .orElseThrow(() -> new RuntimeException("Route not found"));
 
+        List<DeliveryTask> tasks = route.getDeliveryTasks();
+
+        if (tasks == null || tasks.size() < 2) {
+            throw new RuntimeException("Not enough tasks to optimize");
+        }
+
+        // Convert to OSRM format (lng,lat)
         List<String> coords = tasks.stream()
                 .map(t -> t.getDeliveryLongitude() + "," + t.getDeliveryLatitude())
                 .collect(Collectors.toList());
 
+        // FIXED method call
         return optimizer.optimize(coords);
     }
 }
