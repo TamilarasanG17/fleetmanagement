@@ -1,14 +1,14 @@
 package com.example.fleetmanagement.dto;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 public class RouteResponse {
-
-    private Long vehicleId;
+    private Long routeId;
     private List<Integer> optimizedSequence;
+    private double totalTime;
 }
