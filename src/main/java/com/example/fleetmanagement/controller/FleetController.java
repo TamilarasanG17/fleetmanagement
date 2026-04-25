@@ -37,13 +37,15 @@ public class FleetController {
 
     // Assign a driver to a vehicle
     @PutMapping("/drivers/{driverId}/assign/{vehicleId}")
-    public ResponseEntity<Driver> assignDriver(@PathVariable Long driverId, @PathVariable Long vehicleId) {
+    public ResponseEntity<Vehicle> assignDriver(@PathVariable Long driverId,@PathVariable Long vehicleId) {
         Vehicle vehicle = vehicleRepo.findById(vehicleId)
-                .orElseThrow(() -> new RuntimeException("Vehicle not found"));
+            .orElseThrow(() -> new RuntimeException("Vehicle not found"));
+
         Driver driver = driverRepo.findById(driverId)
-                .orElseThrow(() -> new RuntimeException("Driver not found"));
-        
-        driver.setVehicle(vehicle);
-        return ResponseEntity.ok(driverRepo.save(driver));
+            .orElseThrow(() -> new RuntimeException("Driver not found"));
+
+        vehicle.setCurrentDriver(driver);
+
+        return ResponseEntity.ok(vehicleRepo.save(vehicle));
     }
 }
