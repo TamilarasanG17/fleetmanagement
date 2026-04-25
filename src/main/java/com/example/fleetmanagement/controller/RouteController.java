@@ -1,33 +1,21 @@
 package com.example.fleetmanagement.controller;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import com.example.fleetmanagement.service.RouteService;
+
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.example.fleetmanagement.service.RouteOptimizationService;
-
 @RestController
-@RequestMapping("/api/fleet/routing")
+@RequestMapping("/api/routes")
+@RequiredArgsConstructor
 public class RouteController {
-    @Autowired
-    private RouteOptimizationService optimizationService;
 
-    @PostMapping("/optimize")
-    public ResponseEntity<List<Integer>> optimizeRoute(@RequestBody List<String> coordinates) {
-        if (coordinates == null || coordinates.size() < 2) {
-            return ResponseEntity.badRequest().body(null);
-        }
+    private final RouteService routeService;
 
-        try {
-            List<Integer> optimizedIndexOrder = optimizationService.getOptimizedSequence(coordinates);
-            return ResponseEntity.ok(optimizedIndexOrder);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+    @GetMapping("/{id}/optimize")
+    public List<Integer> optimize(@PathVariable Long id) {
+        return routeService.optimizeRoute(id);
     }
 }
