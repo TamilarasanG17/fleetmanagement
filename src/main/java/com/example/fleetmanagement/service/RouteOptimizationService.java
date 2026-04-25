@@ -1,46 +1,48 @@
-package com.example.fleetmanagement.service;
-
-import java.util.ArrayList;
-import java.util.List;
+package com.infotact.fleetmanagement.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import lombok.RequiredArgsConstructor;
 
-import com.example.fleetmanagement.model.DistanceMatrixResponse;
+import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class RouteOptimizationService {
 
     private final RestTemplate restTemplate;
 
-    public RouteOptimizationService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
+    public List<Integer> optimize(List<String> coordinates) {
 
-    public List<Integer> getOptimizedSequence(List<String> coordinates) {
-
-        if (coordinates == null || coordinates.isEmpty()) {
-            throw new IllegalArgumentException("Coordinates cannot be empty");
-        }
-
-        // OSRM expects: lng,lat
-        String coordsString = String.join(";", coordinates);
+        String coords = String.join(";", coordinates);
 
         String url = "http://router.project-osrm.org/table/v1/driving/"
-                + coordsString + "?annotations=duration";
+                + coords + "?annotations=duration";
 
-        DistanceMatrixResponse response =
-                restTemplate.getForObject(url, DistanceMatrixResponse.class);
+        double[][] matrix = restTemplate.getForObject(url, Map.class)
+                .get("durations") instanceof List<?> list
+                ? convertToMatrix(list)
+                : null;
 
-        if (response == null || response.getDurations() == null) {
-            throw new RuntimeException("Failed to fetch distance matrix");
-        }
+        if (matrix == null) throw new RuntimeException("Invalid matrix");
 
-        return calculateGreedyPath(response.getDurations());
+        return greedy(matrix);
     }
 
-    // Greedy TSP Algorithm
-    private List<Integer> calculateGreedyPath(double[][] matrix) {
+    private double[][] convertToMatrix(List<?> list) {
+        int n = list.size();
+        double[][] matrix = new double[n][n];
+
+        for (int i = 0; i < n; i++) {
+            List<?> row = (List<?>) list.get(i);
+            for (int j = 0; j < n; j++) {
+                matrix[i][j] = ((Number) row.get(j)).doubleValue();
+            }
+        }
+        return matrix;
+    }
+
+    private List<Integer> greedy(double[][] matrix) {
 
         int n = matrix.length;
         boolean[] visited = new boolean[n];
@@ -53,24 +55,19 @@ public class RouteOptimizationService {
         while (path.size() < n) {
 
             int next = -1;
-            double minTime = Double.MAX_VALUE;
+            double min = Double.MAX_VALUE;
 
             for (int i = 0; i < n; i++) {
-                if (!visited[i] && matrix[current][i] < minTime) {
-                    minTime = matrix[current][i];
+                if (!visited[i] && matrix[current][i] < min) {
+                    min = matrix[current][i];
                     next = i;
                 }
             }
-
-            if (next == -1) break;
 
             path.add(next);
             visited[next] = true;
             current = next;
         }
-
-        // return to start (optional but good)
-        path.add(path.get(0));
 
         return path;
     }
