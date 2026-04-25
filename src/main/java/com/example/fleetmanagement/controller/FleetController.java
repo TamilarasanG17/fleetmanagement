@@ -10,7 +10,7 @@ import com.example.fleetmanagement.repositry.DriverRepository;
 import com.example.fleetmanagement.repositry.VehicleRepository;
 
 @RestController
-@RequestMapping("/api/fleet")
+@RequestMapping("/api")
 public class FleetController {
 
     private final VehicleRepository vehicleRepo;
