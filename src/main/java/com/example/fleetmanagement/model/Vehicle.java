@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "vehicles")
@@ -59,6 +60,7 @@ public class Vehicle {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "current_driver_id")
+    @JsonIgnoreProperties({"currentDriver", "deliveryTasks", "routes"})
     private Driver currentDriver;
 
     @JsonIgnore

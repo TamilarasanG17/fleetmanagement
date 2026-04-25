@@ -8,6 +8,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Entity
 @Table(name = "routes")
 @Getter
@@ -15,6 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Route {
 
     @Id
@@ -28,19 +31,22 @@ public class Route {
     private LocalDate routeDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "vehicle_id", nullable = false)
+    @JsonIgnoreProperties({"deliveryTasks", "createdAt", "updatedAt"})
     private Vehicle vehicle;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "driver_id", nullable = false)
+    @JsonIgnoreProperties({"deliveryTasks", "createdAt", "updatedAt"})
     private Driver driver;
 
-    @OneToMany(mappedBy = "route", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "route")
+    @JsonIgnore
     private List<DeliveryTask> deliveryTasks;
 
     @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private RouteStatus status = RouteStatus.PLANNED;
+    @Column(nullable = false)
+    private RouteStatus status;
 
     private Double estimatedDistanceKm;
     private Integer estimatedDurationMinutes;
@@ -58,6 +64,10 @@ public class Route {
     void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+
+        if (this.status == null) {
+            this.status = RouteStatus.PLANNED;
+        }
     }
 
     @PreUpdate
