@@ -12,9 +12,13 @@ import com.example.fleetmanagement.repositry.TaskRepository;
 import com.example.fleetmanagement.service.DeliveryTaskService;
 // import com.example.fleetmanagement.repositry.RouteRepository;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/tasks")
 @RequiredArgsConstructor
+@Tag(name = "Task API", description = "Manage delivery tasks")
 public class DeliveryTaskController {
 
     private final TaskRepository taskRepo;
@@ -23,6 +27,7 @@ public class DeliveryTaskController {
 
     // ✅ CREATE TASK
     @PostMapping
+    @Operation(summary = "Create a new delivery task")
     public ResponseEntity<DeliveryTask> createTask(
             @Valid @RequestBody DeliveryTask task) {
 
@@ -31,6 +36,7 @@ public class DeliveryTaskController {
 
     // ✅ ASSIGN TASK TO ROUTE
     @PutMapping("/{taskId}/assign/{routeId}")
+    @Operation(summary = "Assign a task to a route")
     public ResponseEntity<TaskResponse> assignTaskToRoute(
             @PathVariable Long taskId,
             @PathVariable Long routeId) {
@@ -39,21 +45,25 @@ public class DeliveryTaskController {
     }
 
     @PutMapping("/{id}/dispatch")
+    @Operation(summary = "Dispatch a delivery task")
     public ResponseEntity<TaskResponse> dispatch(@PathVariable Long id) {
         return ResponseEntity.ok(taskService.dispatch(id));
     }
 
     @PutMapping("/{id}/start")
+    @Operation(summary = "Start a delivery task")
     public ResponseEntity<TaskResponse> start(@PathVariable Long id) {
         return ResponseEntity.ok(taskService.startTransit(id));
     }
 
     @PutMapping("/{id}/complete")
+    @Operation(summary = "Complete a delivery task")
     public ResponseEntity<TaskResponse> complete(@PathVariable Long id) {
         return ResponseEntity.ok(taskService.complete(id));
     }
 
     @GetMapping("/{id}/status")
+    @Operation(summary = "Get the status of a delivery task")
     public ResponseEntity<String> getStatus(@PathVariable Long id) {
 
         DeliveryTask task = taskRepo.findById(id)
