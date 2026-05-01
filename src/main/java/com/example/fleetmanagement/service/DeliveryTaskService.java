@@ -1,16 +1,17 @@
 package com.example.fleetmanagement.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-
-import org.springframework.stereotype.Service;
 
 import com.example.fleetmanagement.dto.TaskResponse;
 import com.example.fleetmanagement.model.DeliveryTask;
 import com.example.fleetmanagement.model.Route;
 import com.example.fleetmanagement.repositry.RouteRepository;
 import com.example.fleetmanagement.repositry.TaskRepository;
+
+import org.springframework.lang.NonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -19,30 +20,31 @@ public class DeliveryTaskService {
     private final TaskRepository taskRepo;
     private final RouteRepository routeRepo;
 
-    // ✅ CREATE TASK (keep entity return if you want)
-    public DeliveryTask createTaskEntity(DeliveryTask task) {
+    // ================= CREATE =================
+    public DeliveryTask createTask(DeliveryTask task) {
+        if (task == null) {
+            throw new IllegalArgumentException("Task cannot be null");
+        }
         return taskRepo.save(task);
     }
 
-    // ✅ ASSIGN TASK TO ROUTE (DTO response)
-    public TaskResponse assignTask(Long taskId, Long routeId) {
+    // ================= ASSIGN =================
+    public TaskResponse assignTask(long taskId, long routeId) {
 
-        DeliveryTask task = taskRepo.findById(taskId)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+        validateId(taskId, "Task ID");
+        validateId(routeId, "Route ID");
 
-        Route route = routeRepo.findById(routeId)
-                .orElseThrow(() -> new RuntimeException("Route not found"));
+        DeliveryTask task = getTask(taskId);
+        Route route = getRoute(routeId);
 
         task.setRoute(route);
 
-        DeliveryTask saved = taskRepo.save(task);
-
-        return mapToResponse(saved);
+        return mapToResponse(taskRepo.save(task));
     }
 
-    // DISPATCHED: driver heading to pickup
-    public TaskResponse dispatch(Long taskId) {
-        DeliveryTask task = get(taskId);
+    // ================= DISPATCH =================
+    public TaskResponse dispatch(long taskId) {
+        DeliveryTask task = getTask(taskId);
 
         if (task.getStatus() != DeliveryTask.DeliveryStatus.UNASSIGNED) {
             throw new IllegalStateException("Only UNASSIGNED task can be DISPATCHED");
@@ -52,9 +54,9 @@ public class DeliveryTaskService {
         return mapToResponse(taskRepo.save(task));
     }
 
-    // IN_TRANSIT: pickup done
-    public TaskResponse startTransit(Long taskId) {
-        DeliveryTask task = get(taskId);
+    // ================= START TRANSIT =================
+    public TaskResponse startTransit(long taskId) {
+        DeliveryTask task = getTask(taskId);
 
         if (task.getStatus() != DeliveryTask.DeliveryStatus.DISPATCHED) {
             throw new IllegalStateException("Only DISPATCHED task can be IN_TRANSIT");
@@ -62,12 +64,13 @@ public class DeliveryTaskService {
 
         task.setStatus(DeliveryTask.DeliveryStatus.IN_TRANSIT);
         task.setActualPickupTime(LocalDateTime.now());
+
         return mapToResponse(taskRepo.save(task));
     }
 
-    // DELIVERED: delivery completed
-    public TaskResponse complete(Long taskId) {
-        DeliveryTask task = get(taskId);
+    // ================= COMPLETE =================
+    public TaskResponse complete(long taskId) {
+        DeliveryTask task = getTask(taskId);
 
         if (task.getStatus() != DeliveryTask.DeliveryStatus.IN_TRANSIT) {
             throw new IllegalStateException("Only IN_TRANSIT task can be DELIVERED");
@@ -75,26 +78,43 @@ public class DeliveryTaskService {
 
         task.setStatus(DeliveryTask.DeliveryStatus.DELIVERED);
         task.setActualDeliveryTime(LocalDateTime.now());
+
         return mapToResponse(taskRepo.save(task));
     }
 
-    // CANCEL (from any state)
-    public TaskResponse cancel(Long taskId) {
-        DeliveryTask task = get(taskId);
+    // ================= CANCEL =================
+    public TaskResponse cancel(long taskId) {
+        DeliveryTask task = getTask(taskId);
+
         task.setStatus(DeliveryTask.DeliveryStatus.CANCELLED);
+
         return mapToResponse(taskRepo.save(task));
     }
 
-    // -------- helpers --------
-    private DeliveryTask get(Long id) {
-        return taskRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+    // ================= GET =================
+    private DeliveryTask getTask(@NonNull Long id) {
+    validateId(id, "Task ID");
+
+    return taskRepo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Task not found"));
+}
+
+    private Route getRoute(@NonNull Long id) {
+        validateId(id, "Route ID");
+
+        return routeRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Route not found with id: " + id));
     }
 
+    // ================= VALIDATION =================
+    private void validateId(Long id, String field) {
+        if (id == null) {
+            throw new IllegalArgumentException(field + " cannot be null");
+        }
+    }
 
-    //  COMMON MAPPING METHOD
+    // ================= MAPPING =================
     private TaskResponse mapToResponse(DeliveryTask task) {
-
         return new TaskResponse(
                 task.getId(),
                 task.getCustomerName(),
