@@ -41,7 +41,7 @@ public class RouteService {
     //     return optimizer.optimize(coords);
     // }
 
-    public OptimizedRouteResponse optimizeRoute(Long routeId) {
+    public OptimizedRouteResponse optimizeRoute(long routeId) {
 
         Route route = routeRepo.findById(routeId)
                 .orElseThrow(() -> new RuntimeException("Route not found"));
@@ -78,7 +78,7 @@ public class RouteService {
     }
 
       // 🚚 DISPATCH ROUTE
-    public void dispatchRoute(Long routeId) {
+    public void dispatchRoute(long routeId) {
 
         Route route = routeRepo.findById(routeId)
                 .orElseThrow(() -> new RuntimeException("Route not found"));
@@ -100,7 +100,7 @@ public class RouteService {
     }
 
     // 📋 GENERATE MANIFEST
-    public ManifestResponse generateManifest(Long routeId) {
+    public ManifestResponse generateManifest(long routeId) {
 
         Route route = routeRepo.findById(routeId)
                 .orElseThrow(() -> new RuntimeException("Route not found"));
