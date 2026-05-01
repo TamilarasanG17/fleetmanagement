@@ -2,6 +2,11 @@ package com.example.fleetmanagement.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.lang.NonNull;
+
 import lombok.RequiredArgsConstructor;
 
 import java.util.*;
@@ -12,36 +17,68 @@ public class RouteOptimizationService {
 
     private final RestTemplate restTemplate;
 
-    public List<Integer> optimize(List<String> coordinates) {
+    // ================= OPTIMIZE =================
+    public List<Integer> optimize(@NonNull List<String> coordinates) {
+
+        if (coordinates.isEmpty()) {
+            throw new IllegalArgumentException("Coordinates cannot be empty");
+        }
 
         String coords = String.join(";", coordinates);
 
         String url = "http://router.project-osrm.org/table/v1/driving/"
                 + coords + "?annotations=duration";
 
-        double[][] matrix = restTemplate.getForObject(url, Map.class)
-                .get("durations") instanceof List<?> list
-                ? convertToMatrix(list)
-                : null;
+        // ✅ Fix: explicitly ensure non-null
+        HttpMethod method = Objects.requireNonNull(HttpMethod.GET);
 
-        if (matrix == null) throw new RuntimeException("Invalid matrix");
+        ResponseEntity<Map<String, Object>> entity =
+                restTemplate.exchange(
+                        url,
+                        method,
+                        null,
+                        new ParameterizedTypeReference<Map<String, Object>>() {}
+                );
+
+        // ✅ Safe null handling
+        final Map<String, Object> response = Optional.ofNullable(entity.getBody())
+                .orElseThrow(() -> new RuntimeException("OSRM response body is null"));
+
+        Object durationsObj = response.get("durations");
+
+        if (!(durationsObj instanceof List<?> list)) {
+            throw new RuntimeException("Invalid durations data");
+        }
+
+        double[][] matrix = convertToMatrix(list);
 
         return greedy(matrix);
     }
 
+    // ================= MATRIX CONVERSION =================
     private double[][] convertToMatrix(List<?> list) {
+
         int n = list.size();
         double[][] matrix = new double[n][n];
 
         for (int i = 0; i < n; i++) {
             List<?> row = (List<?>) list.get(i);
+
             for (int j = 0; j < n; j++) {
-                matrix[i][j] = ((Number) row.get(j)).doubleValue();
+                Object value = row.get(j);
+
+                if (!(value instanceof Number)) {
+                    throw new RuntimeException("Invalid matrix value");
+                }
+
+                matrix[i][j] = ((Number) value).doubleValue();
             }
         }
+
         return matrix;
     }
 
+    // ================= GREEDY ROUTE =================
     private List<Integer> greedy(double[][] matrix) {
 
         int n = matrix.length;
@@ -62,6 +99,11 @@ public class RouteOptimizationService {
                     min = matrix[current][i];
                     next = i;
                 }
+            }
+
+            // ✅ Safety check
+            if (next == -1) {
+                throw new RuntimeException("No valid next route found");
             }
 
             path.add(next);

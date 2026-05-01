@@ -10,7 +10,7 @@ import com.example.fleetmanagement.repositry.RouteRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-// import java.util.stream.Collectors;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,27 +20,7 @@ public class RouteService {
     private final RouteRepository routeRepo;
     private final RouteOptimizationService optimizer;
 
-    // public List<Integer> optimizeRoute(Long routeId) {
-
-    //     // Fetch route
-    //     Route route = routeRepo.findById(routeId)
-    //             .orElseThrow(() -> new RuntimeException("Route not found"));
-
-    //     List<DeliveryTask> tasks = route.getDeliveryTasks();
-
-    //     if (tasks == null || tasks.size() < 2) {
-    //         throw new RuntimeException("Not enough tasks to optimize");
-    //     }
-
-    //     // Convert to OSRM format (lng,lat)
-    //     List<String> coords = tasks.stream()
-    //             .map(t -> t.getDeliveryLongitude() + "," + t.getDeliveryLatitude())
-    //             .collect(Collectors.toList());
-
-    //     // FIXED method call
-    //     return optimizer.optimize(coords);
-    // }
-
+    // ================= OPTIMIZE ROUTE =================
     public OptimizedRouteResponse optimizeRoute(long routeId) {
 
         Route route = routeRepo.findById(routeId)
@@ -52,18 +32,34 @@ public class RouteService {
             throw new RuntimeException("Not enough tasks to optimize");
         }
 
-        // Convert to coordinates
+        // Build coordinates safely
         List<String> coords = tasks.stream()
-                .map(t -> t.getDeliveryLongitude() + "," + t.getDeliveryLatitude())
-                .toList();
+                .map(t -> {
+                    if (t.getDeliveryLongitude() == null || t.getDeliveryLatitude() == null) {
+                        throw new RuntimeException("Invalid coordinates in task ID: " + t.getId());
+                    }
+                    return t.getDeliveryLongitude() + "," + t.getDeliveryLatitude();
+                })
+                .collect(Collectors.toList());
 
-        // Get index order
+        if (coords.isEmpty()) {
+            throw new RuntimeException("Coordinates list is empty");
+        }
+
         List<Integer> order = optimizer.optimize(coords);
 
-        // Convert index → task details
-        List<OptimizedRouteResponse.TaskInfo> result = new java.util.ArrayList<>();
+        if (order == null || order.isEmpty()) {
+            throw new RuntimeException("Optimization failed");
+        }
+
+        List<OptimizedRouteResponse.TaskInfo> result = new ArrayList<>();
 
         for (Integer i : order) {
+
+            if (i == null || i < 0 || i >= tasks.size()) {
+                throw new RuntimeException("Invalid optimized index: " + i);
+            }
+
             DeliveryTask t = tasks.get(i);
 
             result.add(new OptimizedRouteResponse.TaskInfo(
@@ -77,20 +73,22 @@ public class RouteService {
         return new OptimizedRouteResponse(routeId, result);
     }
 
-      // 🚚 DISPATCH ROUTE
+    // ================= DISPATCH ROUTE =================
     public void dispatchRoute(long routeId) {
 
         Route route = routeRepo.findById(routeId)
                 .orElseThrow(() -> new RuntimeException("Route not found"));
 
-        if (route.getDeliveryTasks() == null || route.getDeliveryTasks().isEmpty()) {
+        List<DeliveryTask> tasks = route.getDeliveryTasks();
+
+        if (tasks == null || tasks.isEmpty()) {
             throw new RuntimeException("No tasks in route");
         }
 
         route.setStatus(Route.RouteStatus.ACTIVE);
         route.setStartTime(LocalDateTime.now());
 
-        for (DeliveryTask t : route.getDeliveryTasks()) {
+        for (DeliveryTask t : tasks) {
             if (t.getStatus() == DeliveryTask.DeliveryStatus.UNASSIGNED) {
                 t.setStatus(DeliveryTask.DeliveryStatus.DISPATCHED);
             }
@@ -99,21 +97,30 @@ public class RouteService {
         routeRepo.save(route);
     }
 
-    // 📋 GENERATE MANIFEST
+    // ================= GENERATE MANIFEST =================
     public ManifestResponse generateManifest(long routeId) {
 
         Route route = routeRepo.findById(routeId)
                 .orElseThrow(() -> new RuntimeException("Route not found"));
 
-        List<ManifestResponse.TaskItem> tasks =
-                route.getDeliveryTasks().stream()
-                        .map(t -> new ManifestResponse.TaskItem(
-                                t.getId(),
-                                t.getCustomerName(),
-                                t.getDeliveryAddress(),
-                                t.getStatus().name()
-                        ))
-                        .collect(Collectors.toList());
+        if (route.getDriver() == null || route.getVehicle() == null) {
+            throw new RuntimeException("Driver or Vehicle not assigned");
+        }
+
+        List<DeliveryTask> tasksList = route.getDeliveryTasks();
+
+        if (tasksList == null || tasksList.isEmpty()) {
+            throw new RuntimeException("No tasks available");
+        }
+
+        List<ManifestResponse.TaskItem> tasks = tasksList.stream()
+                .map(t -> new ManifestResponse.TaskItem(
+                        t.getId(),
+                        t.getCustomerName(),
+                        t.getDeliveryAddress(),
+                        t.getStatus().name()
+                ))
+                .collect(Collectors.toList());
 
         return new ManifestResponse(
                 route.getId(),
