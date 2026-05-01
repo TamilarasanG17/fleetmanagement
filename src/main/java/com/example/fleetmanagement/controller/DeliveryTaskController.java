@@ -52,6 +52,15 @@ public class DeliveryTaskController {
     public ResponseEntity<TaskResponse> complete(@PathVariable Long id) {
         return ResponseEntity.ok(taskService.complete(id));
     }
+
+    @GetMapping("/{id}/status")
+    public ResponseEntity<String> getStatus(@PathVariable Long id) {
+
+        DeliveryTask task = taskRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        return ResponseEntity.ok(task.getStatus().name());
+    }
     // @PutMapping("/{taskId}/assign/{routeId}")
     // public ResponseEntity<DeliveryTask> assignTaskToRoute(
     //         @PathVariable Long taskId,
