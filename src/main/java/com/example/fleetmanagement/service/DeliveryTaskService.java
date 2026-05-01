@@ -1,6 +1,9 @@
 package com.example.fleetmanagement.service;
 
 import lombok.RequiredArgsConstructor;
+
+import java.time.LocalDateTime;
+
 import org.springframework.stereotype.Service;
 
 import com.example.fleetmanagement.dto.TaskResponse;
@@ -37,7 +40,59 @@ public class DeliveryTaskService {
         return mapToResponse(saved);
     }
 
-    // ✅ COMMON MAPPING METHOD
+    // DISPATCHED: driver heading to pickup
+    public TaskResponse dispatch(Long taskId) {
+        DeliveryTask task = get(taskId);
+
+        if (task.getStatus() != DeliveryTask.DeliveryStatus.UNASSIGNED) {
+            throw new IllegalStateException("Only UNASSIGNED task can be DISPATCHED");
+        }
+
+        task.setStatus(DeliveryTask.DeliveryStatus.DISPATCHED);
+        return mapToResponse(taskRepo.save(task));
+    }
+
+    // IN_TRANSIT: pickup done
+    public TaskResponse startTransit(Long taskId) {
+        DeliveryTask task = get(taskId);
+
+        if (task.getStatus() != DeliveryTask.DeliveryStatus.DISPATCHED) {
+            throw new IllegalStateException("Only DISPATCHED task can be IN_TRANSIT");
+        }
+
+        task.setStatus(DeliveryTask.DeliveryStatus.IN_TRANSIT);
+        task.setActualPickupTime(LocalDateTime.now());
+        return mapToResponse(taskRepo.save(task));
+    }
+
+    // DELIVERED: delivery completed
+    public TaskResponse complete(Long taskId) {
+        DeliveryTask task = get(taskId);
+
+        if (task.getStatus() != DeliveryTask.DeliveryStatus.IN_TRANSIT) {
+            throw new IllegalStateException("Only IN_TRANSIT task can be DELIVERED");
+        }
+
+        task.setStatus(DeliveryTask.DeliveryStatus.DELIVERED);
+        task.setActualDeliveryTime(LocalDateTime.now());
+        return mapToResponse(taskRepo.save(task));
+    }
+
+    // CANCEL (from any state)
+    public TaskResponse cancel(Long taskId) {
+        DeliveryTask task = get(taskId);
+        task.setStatus(DeliveryTask.DeliveryStatus.CANCELLED);
+        return mapToResponse(taskRepo.save(task));
+    }
+
+    // -------- helpers --------
+    private DeliveryTask get(Long id) {
+        return taskRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+    }
+
+
+    //  COMMON MAPPING METHOD
     private TaskResponse mapToResponse(DeliveryTask task) {
 
         return new TaskResponse(
