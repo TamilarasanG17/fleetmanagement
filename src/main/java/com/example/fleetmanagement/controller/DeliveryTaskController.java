@@ -37,6 +37,21 @@ public class DeliveryTaskController {
 
         return ResponseEntity.ok(taskService.assignTask(taskId, routeId));
     }
+
+    @PutMapping("/{id}/dispatch")
+    public ResponseEntity<TaskResponse> dispatch(@PathVariable Long id) {
+        return ResponseEntity.ok(taskService.dispatch(id));
+    }
+
+    @PutMapping("/{id}/start")
+    public ResponseEntity<TaskResponse> start(@PathVariable Long id) {
+        return ResponseEntity.ok(taskService.startTransit(id));
+    }
+
+    @PutMapping("/{id}/complete")
+    public ResponseEntity<TaskResponse> complete(@PathVariable Long id) {
+        return ResponseEntity.ok(taskService.complete(id));
+    }
     // @PutMapping("/{taskId}/assign/{routeId}")
     // public ResponseEntity<DeliveryTask> assignTaskToRoute(
     //         @PathVariable Long taskId,
