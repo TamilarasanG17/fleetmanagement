@@ -21,8 +21,10 @@ import com.example.fleetmanagement.model.Vehicle;
 import com.example.fleetmanagement.repositry.DriverRepository;
 import com.example.fleetmanagement.repositry.RouteRepository;
 import com.example.fleetmanagement.repositry.VehicleRepository;
+import com.example.fleetmanagement.service.RateLimiterService;
 import com.example.fleetmanagement.service.RouteService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -34,6 +36,7 @@ public class RouteController {
     private final DriverRepository driverRepo;
     private final RouteService routeService;
      private final RouteRepository routeRepo;
+     private final RateLimiterService rateLimiter;
 
     @PostMapping
     public ResponseEntity<Route> createRoute(@RequestBody CreateRouteRequest req) {
@@ -64,11 +67,20 @@ public class RouteController {
         return ResponseEntity.ok("Route dispatched");
     }
 
+    // @GetMapping("/{id}/manifest")
+    // public ResponseEntity<ManifestResponse> manifest(@PathVariable Long id) {
+    //     return ResponseEntity.ok(routeService.generateManifest(id));
+    // }
+
     @GetMapping("/{id}/manifest")
-    public ResponseEntity<ManifestResponse> manifest(@PathVariable Long id) {
+    public ResponseEntity<ManifestResponse> manifest(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+
+        rateLimiter.checkLimit(request.getRemoteAddr());
+
         return ResponseEntity.ok(routeService.generateManifest(id));
     }
-    
     // @GetMapping("/{id}/optimize")
     // public List<Integer> optimize(@PathVariable Long id) {
     //     return routeService.optimizeRoute(id);
