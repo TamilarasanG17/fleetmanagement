@@ -6,11 +6,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.fleetmanagement.dto.CreateRouteRequest;
+import com.example.fleetmanagement.dto.ManifestResponse;
 import com.example.fleetmanagement.dto.OptimizedRouteResponse;
 // import com.example.fleetmanagement.dto.RouteRequest;
 import com.example.fleetmanagement.model.Driver;
@@ -56,6 +58,17 @@ public class RouteController {
         return ResponseEntity.ok(routeService.optimizeRoute(id));
     }
 
+    @PutMapping("/{id}/dispatch")
+    public ResponseEntity<String> dispatchRoute(@PathVariable Long id) {
+        routeService.dispatchRoute(id);
+        return ResponseEntity.ok("Route dispatched");
+    }
+
+    @GetMapping("/{id}/manifest")
+    public ResponseEntity<ManifestResponse> manifest(@PathVariable Long id) {
+        return ResponseEntity.ok(routeService.generateManifest(id));
+    }
+    
     // @GetMapping("/{id}/optimize")
     // public List<Integer> optimize(@PathVariable Long id) {
     //     return routeService.optimizeRoute(id);
