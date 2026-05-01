@@ -3,12 +3,15 @@ package com.example.fleetmanagement.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.example.fleetmanagement.dto.ManifestResponse;
 import com.example.fleetmanagement.dto.OptimizedRouteResponse;
 import com.example.fleetmanagement.model.*;
 import com.example.fleetmanagement.repositry.RouteRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 // import java.util.stream.Collectors;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -72,5 +75,54 @@ public class RouteService {
         }
 
         return new OptimizedRouteResponse(routeId, result);
+    }
+
+      // 🚚 DISPATCH ROUTE
+    public void dispatchRoute(Long routeId) {
+
+        Route route = routeRepo.findById(routeId)
+                .orElseThrow(() -> new RuntimeException("Route not found"));
+
+        if (route.getDeliveryTasks() == null || route.getDeliveryTasks().isEmpty()) {
+            throw new RuntimeException("No tasks in route");
+        }
+
+        route.setStatus(Route.RouteStatus.ACTIVE);
+        route.setStartTime(LocalDateTime.now());
+
+        for (DeliveryTask t : route.getDeliveryTasks()) {
+            if (t.getStatus() == DeliveryTask.DeliveryStatus.UNASSIGNED) {
+                t.setStatus(DeliveryTask.DeliveryStatus.DISPATCHED);
+            }
+        }
+
+        routeRepo.save(route);
+    }
+
+    // 📋 GENERATE MANIFEST
+    public ManifestResponse generateManifest(Long routeId) {
+
+        Route route = routeRepo.findById(routeId)
+                .orElseThrow(() -> new RuntimeException("Route not found"));
+
+        List<ManifestResponse.TaskItem> tasks =
+                route.getDeliveryTasks().stream()
+                        .map(t -> new ManifestResponse.TaskItem(
+                                t.getId(),
+                                t.getCustomerName(),
+                                t.getDeliveryAddress(),
+                                t.getStatus().name()
+                        ))
+                        .collect(Collectors.toList());
+
+        return new ManifestResponse(
+                route.getId(),
+                route.getRouteName(),
+                route.getDriver().getId(),
+                route.getDriver().getName(),
+                route.getVehicle().getId(),
+                route.getVehicle().getLicensePlate(),
+                tasks
+        );
     }
 }
