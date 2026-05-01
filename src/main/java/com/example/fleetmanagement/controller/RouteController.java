@@ -24,9 +24,12 @@ import com.example.fleetmanagement.repositry.VehicleRepository;
 import com.example.fleetmanagement.service.RateLimiterService;
 import com.example.fleetmanagement.service.RouteService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "Route API", description = "Manage routes and optimization")
 @RestController
 @RequestMapping("/api/routes")
 @RequiredArgsConstructor
@@ -38,7 +41,8 @@ public class RouteController {
      private final RouteRepository routeRepo;
      private final RateLimiterService rateLimiter;
 
-    @PostMapping
+     @Operation(summary = "Create a new route")
+     @PostMapping
     public ResponseEntity<Route> createRoute(@RequestBody CreateRouteRequest req) {
 
         Vehicle vehicle = vehicleRepo.findById(req.getVehicleId())
@@ -57,11 +61,13 @@ public class RouteController {
     }
 
     @GetMapping("/{id}/optimize")
+    @Operation(summary = "Optimize a route")
     public ResponseEntity<OptimizedRouteResponse> optimize(@PathVariable Long id) {
         return ResponseEntity.ok(routeService.optimizeRoute(id));
     }
 
     @PutMapping("/{id}/dispatch")
+    @Operation(summary = "Dispatch a route")
     public ResponseEntity<String> dispatchRoute(@PathVariable Long id) {
         routeService.dispatchRoute(id);
         return ResponseEntity.ok("Route dispatched");
@@ -73,6 +79,7 @@ public class RouteController {
     // }
 
     @GetMapping("/{id}/manifest")
+    @Operation(summary = "Generate manifest for a route")
     public ResponseEntity<ManifestResponse> manifest(
             @PathVariable Long id,
             HttpServletRequest request) {
