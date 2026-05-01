@@ -1,0 +1,18 @@
+package com.example.fleetmanagement.config;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import org.springframework.context.annotation.*;
+
+@Configuration
+public class OpenApiConfig {
+
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("Fleet Management API")
+                        .version("1.0")
+                        .description("API for Drivers, Vehicles, Routes, Tasks and Optimization"));
+    }
+}
