@@ -26,9 +26,7 @@ public class FleetController {
         this.driverRepo = driverRepo;
     }
 
-    // ============================
-    // 🚗 Register Vehicle
-    // ============================
+    // Register Vehicle
     @PostMapping("/vehicles")
     @Operation(summary = "Register a new vehicle")
     public ResponseEntity<?> registerVehicle(@Valid @RequestBody Vehicle vehicle) {
@@ -41,9 +39,7 @@ public class FleetController {
         return new ResponseEntity<>(savedVehicle, HttpStatus.CREATED);
     }
 
-    // ============================
     // 👨‍✈️ Create Driver
-    // ============================
     @PostMapping("/drivers")
     @Operation(summary = "Create a new driver")
     public ResponseEntity<?> createDriver(@Valid @RequestBody Driver driver) {
@@ -56,29 +52,23 @@ public class FleetController {
         return new ResponseEntity<>(savedDriver, HttpStatus.CREATED);
     }
 
-    // ============================
     // 🔗 Assign Driver to Vehicle
-    // ============================
     @PutMapping("/drivers/{driverId}/assign/{vehicleId}")
     @Operation(summary = "Assign a driver to a vehicle")
     public ResponseEntity<?> assignDriver(
             @PathVariable Long driverId,
             @PathVariable Long vehicleId) {
 
-        // Validate IDs
         if (driverId == null || vehicleId == null) {
             return ResponseEntity.badRequest().body("Driver ID and Vehicle ID must not be null");
         }
 
-        // Fetch vehicle
         Vehicle vehicle = vehicleRepo.findById(vehicleId)
                 .orElseThrow(() -> new RuntimeException("Vehicle not found with ID: " + vehicleId));
 
-        // Fetch driver
         Driver driver = driverRepo.findById(driverId)
                 .orElseThrow(() -> new RuntimeException("Driver not found with ID: " + driverId));
 
-        // Business validation
         if (driver.getStatus() != Driver.DriverStatus.AVAILABLE) {
             return ResponseEntity.badRequest().body("Driver is not available");
         }
@@ -87,7 +77,6 @@ public class FleetController {
         vehicle.setCurrentDriver(driver);
         driver.setStatus(Driver.DriverStatus.ON_DUTY);
 
-        // Save updates
         vehicleRepo.save(vehicle);
         driverRepo.save(driver);
 
