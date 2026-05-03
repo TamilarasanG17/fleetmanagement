@@ -28,7 +28,7 @@ public class DeliveryTaskService {
         return taskRepo.save(task);
     }
 
-    // ================= ASSIGN =================
+    // ASSIGN
     public TaskResponse assignTask(long taskId, long routeId) {
 
         validateId(taskId, "Task ID");
@@ -42,7 +42,7 @@ public class DeliveryTaskService {
         return mapToResponse(taskRepo.save(task));
     }
 
-    // ================= DISPATCH =================
+    // DISPATCH 
     public TaskResponse dispatch(long taskId) {
         DeliveryTask task = getTask(taskId);
 
@@ -54,7 +54,7 @@ public class DeliveryTaskService {
         return mapToResponse(taskRepo.save(task));
     }
 
-    // ================= START TRANSIT =================
+    // START TRANSIT 
     public TaskResponse startTransit(long taskId) {
         DeliveryTask task = getTask(taskId);
 
@@ -68,7 +68,7 @@ public class DeliveryTaskService {
         return mapToResponse(taskRepo.save(task));
     }
 
-    // ================= COMPLETE =================
+    // COMPLETE 
     public TaskResponse complete(long taskId) {
         DeliveryTask task = getTask(taskId);
 
@@ -82,7 +82,7 @@ public class DeliveryTaskService {
         return mapToResponse(taskRepo.save(task));
     }
 
-    // ================= CANCEL =================
+    // CANCEL 
     public TaskResponse cancel(long taskId) {
         DeliveryTask task = getTask(taskId);
 

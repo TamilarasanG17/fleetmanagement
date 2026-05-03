@@ -23,7 +23,7 @@ public class DeliveryTaskController {
     private final TaskRepository taskRepo;
     private final DeliveryTaskService taskService;
 
-    // ✅ CREATE TASK
+    //  CREATE TASK
     @PostMapping
     @Operation(summary = "Create a new delivery task")
     public ResponseEntity<DeliveryTask> createTask(
@@ -37,7 +37,7 @@ public class DeliveryTaskController {
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
-    // ✅ ASSIGN TASK TO ROUTE
+    //  ASSIGN TASK TO ROUTE
     @PutMapping("/{taskId}/assign/{routeId}")
     @Operation(summary = "Assign a task to a route")
     public ResponseEntity<TaskResponse> assignTaskToRoute(
@@ -47,28 +47,28 @@ public class DeliveryTaskController {
         return ResponseEntity.ok(taskService.assignTask(taskId, routeId));
     }
 
-    // ✅ DISPATCH TASK
+    // DISPATCH TASK
     @PutMapping("/{id}/dispatch")
     @Operation(summary = "Dispatch a delivery task")
     public ResponseEntity<TaskResponse> dispatch(@PathVariable Long id) {
         return ResponseEntity.ok(taskService.dispatch(id));
     }
 
-    // ✅ START TASK
+    //  START TASK
     @PutMapping("/{id}/start")
     @Operation(summary = "Start a delivery task")
     public ResponseEntity<TaskResponse> start(@PathVariable Long id) {
         return ResponseEntity.ok(taskService.startTransit(id));
     }
 
-    // ✅ COMPLETE TASK
+    // COMPLETE TASK
     @PutMapping("/{id}/complete")
     @Operation(summary = "Complete a delivery task")
     public ResponseEntity<TaskResponse> complete(@PathVariable Long id) {
         return ResponseEntity.ok(taskService.complete(id));
     }
 
-    // ✅ GET STATUS
+    //  GET STATUS
     @GetMapping("/{id}/status")
     @Operation(summary = "Get the status of a delivery task")
     public ResponseEntity<String> getStatus(@PathVariable long id) {
