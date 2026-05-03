@@ -11,7 +11,7 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Fleet Management API")
+                        .title("Fleet Management and Route Optimization API")
                         .version("1.0")
                         .description("API for Drivers, Vehicles, Routes, Tasks and Optimization"));
     }

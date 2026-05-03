@@ -19,7 +19,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .anyRequest().permitAll()
             )
-            .httpBasic(Customizer.withDefaults()); // ✅ FIXED
+            .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }
