@@ -119,7 +119,7 @@ trap {
     catch { Write-Warning "Cannot remove $TMP_DOWNLOAD_DIR" }
   }
 }
-
+@REM hi
 New-Item -Itemtype Directory -Path "$MAVEN_HOME_PARENT" -Force | Out-Null
 
 # Download and Install Apache Maven
