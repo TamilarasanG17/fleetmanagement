@@ -20,7 +20,7 @@ public class RouteService {
     private final RouteRepository routeRepo;
     private final RouteOptimizationService optimizer;
 
-    // ================= OPTIMIZE ROUTE =================
+    // ================= OPTIMIZE THE ROUTE =================
     public OptimizedRouteResponse optimizeRoute(long routeId) {
 
         Route route = routeRepo.findById(routeId)
@@ -32,7 +32,6 @@ public class RouteService {
             throw new RuntimeException("Not enough tasks to optimize");
         }
 
-        // Build coordinates safely
         List<String> coords = tasks.stream()
                 .map(t -> {
                     if (t.getDeliveryLongitude() == null || t.getDeliveryLatitude() == null) {
@@ -73,7 +72,7 @@ public class RouteService {
         return new OptimizedRouteResponse(routeId, result);
     }
 
-    // ================= DISPATCH ROUTE =================
+    // ================= DISPATCH THE ROUTE =================
     public void dispatchRoute(long routeId) {
 
         Route route = routeRepo.findById(routeId)
@@ -97,7 +96,7 @@ public class RouteService {
         routeRepo.save(route);
     }
 
-    // ================= GENERATE MANIFEST =================
+    // ================= GENERATE THE MANIFEST =================
     public ManifestResponse generateManifest(long routeId) {
 
         Route route = routeRepo.findById(routeId)

@@ -29,7 +29,6 @@ public class RouteOptimizationService {
         String url = "http://router.project-osrm.org/table/v1/driving/"
                 + coords + "?annotations=duration";
 
-        // ✅ Fix: explicitly ensure non-null
         HttpMethod method = Objects.requireNonNull(HttpMethod.GET);
 
         ResponseEntity<Map<String, Object>> entity =
@@ -40,7 +39,6 @@ public class RouteOptimizationService {
                         new ParameterizedTypeReference<Map<String, Object>>() {}
                 );
 
-        // ✅ Safe null handling
         final Map<String, Object> response = Optional.ofNullable(entity.getBody())
                 .orElseThrow(() -> new RuntimeException("OSRM response body is null"));
 
@@ -101,7 +99,6 @@ public class RouteOptimizationService {
                 }
             }
 
-            // ✅ Safety check
             if (next == -1) {
                 throw new RuntimeException("No valid next route found");
             }
