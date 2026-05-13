@@ -140,6 +140,31 @@ APIs can be tested using:
 
 ---
 
+## Driver Assign
+
+![Driver Assign](images/driver-assign.png)
+
+## Vehicle Assign
+
+![Vehicle Assign](images/vehicle-assign.png)
+
+## Optimize Route
+
+![Optimize Route](images/optimize-route.png)
+
+## Manifest the Delivery
+
+![Manifest Delivery](images/manifest-delivery.png)
+
+## Swagger API
+
+![Swagger](images/swagger.png)
+
+## Task Assign
+
+![Task Assign](images/task-assign.png)
+
+
 ## ✅ Conclusion
 
 This project demonstrates backend development using Spring Boot, REST API design, database integration with MySQL, and containerization using Docker.
